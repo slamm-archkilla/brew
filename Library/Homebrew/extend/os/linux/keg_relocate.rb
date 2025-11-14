@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require "compilers"
+require "os/linux/elf"
 
 class Keg
   sig { params(relocation: Relocation, skip_protodesc_cold: T::Boolean).void }
@@ -85,6 +86,8 @@ class Keg
     elf_files = []
     path.find do |pn|
       next if pn.symlink? || pn.directory?
+
+      pn.extend(ELFShim)
       next if !pn.dylib? && !pn.binary_executable?
 
       # If we've already processed a file, ignore its hardlinks (which have the

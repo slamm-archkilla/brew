@@ -479,4 +479,3 @@ class Pathname
       end
   end
 end
-require "extend/os/pathname"

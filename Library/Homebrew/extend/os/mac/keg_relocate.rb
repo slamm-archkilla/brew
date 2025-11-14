@@ -1,6 +1,8 @@
 # typed: strict
 # frozen_string_literal: true
 
+require "os/mac/mach"
+
 module OS
   module Mac
     module Keg
@@ -11,6 +13,8 @@ module OS
       module ClassMethods
         sig { params(file: Pathname, string: String).returns(T::Array[String]) }
         def file_linked_libraries(file, string)
+          file.extend(MachOShim)
+
           # Check dynamic library linkage. Importantly, do not perform for static
           # libraries, which will falsely report "linkage" to themselves.
           if file.mach_o_executable? || file.dylib? || file.mach_o_bundle?
@@ -207,6 +211,8 @@ module OS
         mach_o_files = []
         path.find do |pn|
           next if pn.symlink? || pn.directory?
+
+          pn.extend(MachOShim)
           next if !pn.dylib? && !pn.mach_o_bundle? && !pn.mach_o_executable?
           # if we've already processed a file, ignore its hardlinks (which have the same dev ID and inode)
           # this prevents relocations from being performed on a binary more than once
